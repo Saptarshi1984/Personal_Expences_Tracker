@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Sign Up - ExpenseTracker{% endblock %}
+
+{% block content %}
+<section class="signup-page py-5">
+  <div class="container d-flex justify-content-center">
+    <div class="signup-container w-100">
+      <header class="signup-header text-center mb-4">
+        <div class="d-flex align-items-center justify-content-center gap-3 text-dark mb-3">
+          <div class="signup-logo d-flex align-items-center justify-content-center">
+            <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M44 4H30.6666V17.3334H17.3334V30.6666H4V44H44V4Z" fill="currentColor" />
+            </svg>
+          </div>
+          <h2 class="h4 fw-bold mb-0">Expense Tracker</h2>
+        </div>
+        <div>
+          <p class="display-6 fw-bold mb-1">Create Your Account</p>
+          <p class="text-muted mb-0">Start managing your finances today.</p>
+        </div>
+      </header>
+
+      <div class="signup-card shadow-sm rounded-4 p-4 p-md-5">
+        <form class="signup-form d-flex flex-column gap-4">
+          <label class="w-100">
+            <span class="signup-label">Full Name</span>
+            <input type="text" class="signup-input" placeholder="Enter your full name" required />
+          </label>
+          <label class="w-100">
+            <span class="signup-label">Email Address</span>
+            <input type="email" class="signup-input" placeholder="Enter your email address" required />
+          </label>
+          <label class="w-100">
+            <span class="signup-label">Password</span>
+            <div class="signup-field with-addon">
+              <input type="password" class="signup-input border-0" placeholder="Enter your password" required />
+              <span class="signup-addon material-symbols-outlined">visibility</span>
+            </div>
+          </label>
+          <label class="w-100">
+            <span class="signup-label">Confirm Password</span>
+            <div class="signup-field with-addon">
+              <input type="password" class="signup-input border-0" placeholder="Confirm your password" required />
+              <span class="signup-addon material-symbols-outlined">visibility_off</span>
+            </div>
+          </label>
+          <button type="submit" class="btn btn-primary btn-lg fw-bold mt-2">Sign Up</button>
+        </form>
+
+        <div class="signup-divider my-4">
+          <span>Or sign up with</span>
+        </div>
+
+        <div class="row g-3 signup-social">
+          <div class="col-12 col-sm-6">
+            <button class="signup-social-btn w-100">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g clip-path="url(#clip0)">
+                  <path d="M23.766 12.2764C23.766 11.4607 23.6999 10.6406 23.5588 9.84497H12.2119V14.5097H18.7201C18.4556 16.0372 17.6534 17.3413 16.4375 18.1841V21.1352H20.2524C22.4921 19.1673 23.766 16.0328 23.766 12.2764Z" fill="#4285F4" />
+                  <path d="M12.2119 24.0008C15.4243 24.0008 18.0932 22.9382 20.2524 21.1352L16.4375 18.1841C15.3675 18.8927 13.9141 19.3334 12.2119 19.3334C9.04396 19.3334 6.32896 17.218 5.25301 14.3321H1.29785V17.387C3.41352 21.3149 7.46433 24.0008 12.2119 24.0008Z" fill="#34A853" />
+                  <path d="M5.25301 14.3321C5.00016 13.6235 4.85909 12.8643 4.85909 12.0004C4.85909 11.1365 5.00016 10.3773 5.25301 9.66873V6.61365H1.29785C0.477754 8.3075 0 10.0933 0 12.0004C0 13.9075 0.477754 15.6933 1.29785 17.387L5.25301 14.3321Z" fill="#FBBC05" />
+                  <path d="M12.2119 4.66736C13.9639 4.66736 15.5327 5.25206 16.8527 6.48625L20.3381 3.00086C18.0888 0.97725 15.4243 0 12.2119 0C7.46433 0 3.41352 2.6859 1.29785 6.61365L5.25301 9.66873C6.32896 6.78289 9.04396 4.66736 12.2119 4.66736Z" fill="#EA4335" />
+                </g>
+                <defs>
+                  <clipPath id="clip0">
+                    <rect width="24" height="24" fill="white" />
+                  </clipPath>
+                </defs>
+              </svg>
+              <span>Google</span>
+            </button>
+          </div>
+          <div class="col-12 col-sm-6">
+            <button class="signup-social-btn w-100">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14.9333 22.4839C14.3411 22.4839 13.7489 22.4839 13.1567 22.4585C10.6033 22.2818 8.65556 20.2595 8.45333 17.7279C8.35222 16.4866 8.78 15.3466 9.58444 14.3833C10.3633 13.4455 11.2956 12.8788 12.38 12.7266C12.9467 12.6505 13.5133 12.6505 14.08 12.7011C16.4289 12.9288 18.2533 14.6722 18.4556 16.9933C18.4811 17.2733 18.5067 17.5533 18.5067 17.8333C18.5067 18.0099 18.5067 18.1866 18.5067 18.3633C18.5067 18.4139 18.5067 18.4644 18.5067 18.515C17.0222 18.515 15.5378 18.515 14.0533 18.515C14.0533 19.5277 14.0533 20.5149 14.0533 21.5272C14.3333 21.5272 14.6133 21.5272 14.8933 21.5272C15.7733 21.5272 16.6278 21.2211 17.2711 20.5272C16.4922 19.8838 15.7133 19.2405 14.9344 18.5972C14.3678 19.5783 14.0278 20.5849 14.0533 21.6283C14.0533 21.9083 14.1044 22.1883 14.18 22.4683C14.4344 22.4683 14.6889 22.4839 14.9178 22.4839L14.9333 22.4839Z M12.0233 10.9233C12.0233 9.41217 12.6156 7.97773 13.6711 6.91551C14.7267 5.85329 16.1611 5.26107 17.6722 5.26107C17.6722 6.77217 17.08 8.20662 16.0244 9.26884C14.9689 10.3311 13.5344 10.9233 12.0233 10.9233Z M16.2722 5.00662C17.5133 5.00662 18.6789 4.38884 19.4833 3.37662C19.0556 2.13551 18.2511 1.09217 17.18 0.448843C16.8211 0.272175 16.4111 0.171064 16 0.12051C15.1456 0.297175 14.3922 0.726621 13.8256 1.39551C12.7189 2.58995 12.2133 4.17773 12.5189 5.76551C13.2978 5.26107 14.1778 5.00662 15.0833 5.00662C15.4933 5.00662 15.8778 5.00662 16.2722 5.00662Z" />
+              </svg>
+              <span>Apple</span>
+            </button>
+          </div>
+        </div>
+
+        <p class="text-center text-muted mt-4">
+          Already have an account?
+          <a href="{{ url_for('signin') }}" class="text-primary fw-semibold text-decoration-none">Log In</a>
+        </p>
+
+        <footer class="signup-terms mt-3 text-center">
+          <small class="text-muted">
+            By signing up, you agree to our
+            <a href="#" class="text-decoration-underline">Terms of Service</a>
+            and
+            <a href="#" class="text-decoration-underline">Privacy Policy</a>.
+          </small>
+        </footer>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
