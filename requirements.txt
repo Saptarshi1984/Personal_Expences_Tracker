@@ -1,0 +1,5 @@
+python
+flask
+flask-wtf
+Flask-SQLAlchemy
+python-dotenv
