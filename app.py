@@ -20,7 +20,7 @@ db = SQLAlchemy(app)
 
 #---Database model---
 class User(db.Model):
-    id = db.Column(db.integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
     
@@ -28,6 +28,12 @@ class User(db.Model):
         return f"<User {self.email}>"
     
 class SignupForm(FlaskForm):
+    
+    full_name = StringField(         
+        'Full Name',
+        validators=[DataRequired(), Length(min=2, max=100)]
+    )
+    
     email = StringField(
         'Email',
         validators=[
@@ -35,8 +41,16 @@ class SignupForm(FlaskForm):
             Email(message="Please enter a valid email address!")
         ]
     )
-    password = StringField(
+    password = PasswordField(
         'password',
+        validators=[
+            DataRequired(),
+            Length(min=6, message="Password must be at least 6 characters.")
+        ]
+    )
+    
+    confirm_password = PasswordField(
+        'confirm_password',
         validators=[
             DataRequired(),
             Length(min=6, message="Password must be at least 6 characters.")
@@ -67,19 +81,23 @@ def signup():
         # 2. Hash the password
         hashed_password = generate_password_hash(form.password.data)
         
-    # 3. Create new user object
-    new_user = User(email=form.email.data, password_hash=hashed_password)
+        # 3. Create new user object
+        new_user = User(email=form.email.data, password=hashed_password)
+
     
-    # 4. Save to database
-    db.session.add(new_user)
-    db.session.commit
+        # 4. Save to database
+        db.session.add(new_user)
+        db.session.commit()
     
     # 5. Show success message and redirect
-    flash("Account created successfully! You can now log in.", "success")
-    return redirect(url_for('signin'))
+        flash("Account created successfully! You can now log in.", "success")
+        return redirect(url_for('signin'))
+
     # If GET request or form not valid, just render the template again
     return render_template('signup.html', form=form)
 
 
 if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
     app.run(debug=True)

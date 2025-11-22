@@ -22,30 +22,34 @@
       </header>
 
       <div class="signup-card shadow-sm rounded-4 p-4 p-md-5">
-        <form class="signup-form d-flex flex-column gap-4">
+        <form method="POST" action="{{ url_for('signup') }}"
+        class="signup-form d-flex flex-column gap-4">
+        
+        {{ form.hidden_tag() }}
+
           <label class="w-100">
             <span class="signup-label">Full Name</span>
-            <input type="text" class="signup-input" placeholder="Enter your full name" required />
+            {{ form.full_name(class="signup-input", placeholder="Enter your full name") }}
           </label>
           <label class="w-100">
             <span class="signup-label">Email Address</span>
-            <input type="email" class="signup-input" placeholder="Enter your email address" required />
+            {{ form.email(class="signup-input", placeholder="Enter your email address") }}
           </label>
           <label class="w-100">
             <span class="signup-label">Password</span>
             <div class="signup-field with-addon">
-              <input type="password" class="signup-input border-0" placeholder="Enter your password" required />
+              {{ form.password(class="signup-input border-0", placeholder="Enter your password") }}
               <span class="signup-addon material-symbols-outlined">visibility</span>
             </div>
           </label>
           <label class="w-100">
             <span class="signup-label">Confirm Password</span>
             <div class="signup-field with-addon">
-              <input type="password" class="signup-input border-0" placeholder="Confirm your password" required />
+              {{ form.confirm_password(class="signup-input border-0", placeholder="Confirm your password") }}
               <span class="signup-addon material-symbols-outlined">visibility_off</span>
             </div>
           </label>
-          <button type="submit" class="btn btn-primary btn-lg fw-bold mt-2">Sign Up</button>
+          {{ form.submit(class="btn btn-primary btn-lg fw-bold mt-2") }}
         </form>     
 
         <p class="text-center text-muted mt-4">

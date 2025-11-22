@@ -1,5 +1,7 @@
 python
 flask
+jinja
 flask-wtf
 Flask-SQLAlchemy
 python-dotenv
+email-validator
