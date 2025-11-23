@@ -22,7 +22,9 @@
             </div>
             <h1 class="display-6 fs-2 fw-bold mb-2 text-dark">Welcome Back</h1>
             <p class="text-muted mb-4">Sign in to continue to your dashboard.</p>
-            <form class="d-flex flex-column gap-3">
+            <form class="d-flex flex-column gap-3"
+            method='POST'
+            action = "{{ url_for('signin') }}" >
               <label class="w-100">
                 <span class="fw-semibold text-dark d-block mb-2">Email</span>
                 <div class="signin-field">
@@ -32,6 +34,7 @@
                   <input
                     type="email"
                     class="signin-input"
+                    name="email"
                     placeholder="Enter your email"
                     required
                   />
@@ -49,6 +52,7 @@
                   <input
                     type="password"
                     class="signin-input border-start-0 border-end-0"
+                    name="password"
                     placeholder="Enter your password"
                     required
                   />

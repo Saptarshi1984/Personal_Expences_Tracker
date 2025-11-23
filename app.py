@@ -1,10 +1,10 @@
 import os
-from flask import Flask, render_template, redirect, url_for, flash
+from flask import Flask, render_template, redirect, url_for, flash, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, Email, EqualTo, Length
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
 
 app = Flask(__name__)
@@ -63,9 +63,23 @@ class SignupForm(FlaskForm):
 def home():
     return render_template("index.html")
 
-@app.route('/SignIn')
+@app.route('/SignIn', methods=['GET', 'POST'])
 def signin():
+    email = request.form.get('email')
+    password = request.form.get('password')
+    
+    user = User.query.filter_by(email=email).first()
+    
+    if user and check_password_hash(user.password, password):
+        
+        flash("SignIn Sucessful!")
+        return redirect(url_for('dashboard'))
+    else:
+        flash('Invalid email or password.', "danger")        
+    
     return render_template("signin.html")
+
+
 
 @app.route('/SignUp', methods=['GET', 'POST'])
 def signup():
@@ -98,6 +112,6 @@ def signup():
 
 
 if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
+   # with app.app_context():
+   #     db.create_all()
     app.run(debug=True)
