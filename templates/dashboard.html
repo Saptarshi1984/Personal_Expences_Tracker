@@ -3,8 +3,257 @@
 {% block title %}Dashboard - ExpenseTracker{% endblock %}
 
 {% block content %}
-  <div class="container py-5">
-    <h1 class="display-5 fw-bold">Dashboard</h1>
-    <p class="text-muted">You are now logged in 🎉</p>
-  </div>
+  <section class="dashboard-page py-4">
+    <div class="container-fluid px-4">
+      <div class="dashboard-layout">
+        <aside class="dashboard-sidebar">
+          <div class="d-flex flex-column h-100">
+            <div class="d-flex flex-column gap-3">
+              <div class="d-flex align-items-center gap-2">
+                <span class="material-symbols-outlined text-primary fs-3">
+                  account_balance_wallet
+                </span>
+                <h1 class="h5 mb-0 fw-bold text-white">FinTrack</h1>
+              </div>
+              <div class="d-flex align-items-center gap-3">
+                <div
+                  class="avatar-circle"
+                  style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDNAj7cX6N64AhPevNB8AMzkYTHgEC-diokqlchSFUbvrUnw2HGUExTKox152erYnEcVD5e2Cg0PRsulyUJ3kNq26poSkFUeRyh70R-_dpS7bpEebdoAibYX9FIFf8nBmpNCb_GJZeMYrY4Z48DZ6vPkq8NqGyChd26Lk47_elnPJHil8EK5fjIfsyLhwrQtnpN-oa6yST_YJUoaDe91960Mb3phMWl4g6-W48Zr0hMGaYtsVwWa8FQ2lew5rGuOiEXt_YmLrtGg3p5");'
+                  aria-label="User avatar"
+                ></div>
+                <div class="d-flex flex-column">
+                  {% if 'user_id' in session %}
+                  <span class="fw-semibold text-white">{{ session.get('name') }}</span>
+                  <small class="text-secondary-lt">{{ session.get('email') }}</small>
+                  {% endif %}
+                </div>
+              </div>
+              <nav class="sidebar-nav d-flex flex-column gap-2">
+                <a class="sidebar-link active" href="#">
+                  <span class="material-symbols-outlined">dashboard</span>
+                  Dashboard
+                </a>
+                <a class="sidebar-link" href="#">
+                  <span class="material-symbols-outlined">bar_chart</span>
+                  Reports
+                </a>
+                <a class="sidebar-link" href="#">
+                  <span class="material-symbols-outlined">wallet</span>
+                  Budgets
+                </a>
+                <a class="sidebar-link" href="#">
+                  <span class="material-symbols-outlined">settings</span>
+                  Settings
+                </a>
+              </nav>
+            </div>
+            <div class="mt-auto d-flex flex-column gap-3">
+              <a class="btn btn-primary w-100 fw-semibold" href="#">
+                Add Expense
+              </a>
+              <div class="d-flex flex-column gap-2">
+                <a class="sidebar-link" href="#">
+                  <span class="material-symbols-outlined">help</span>
+                  Help
+                </a>
+                <a class="sidebar-link" href="{{ url_for('logout') }}">
+                  <span class="material-symbols-outlined">logout</span>
+                  Log out
+                </a>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <div class="dashboard-main">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+            <p class="h1 fw-black mb-0 text-dark">Dashboard</p>
+          </div>
+
+          <div class="segmented-wrapper mb-4">
+            <div class="segmented-control">
+              <input
+                type="radio"
+                class="btn-check"
+                name="date-range"
+                id="range-month"
+                checked
+              />
+              <label class="segmented-option" for="range-month">This Month</label>
+
+              <input
+                type="radio"
+                class="btn-check"
+                name="date-range"
+                id="range-quarter"
+              />
+              <label class="segmented-option" for="range-quarter">Last 3 Months</label>
+
+              <input
+                type="radio"
+                class="btn-check"
+                name="date-range"
+                id="range-ytd"
+              />
+              <label class="segmented-option" for="range-ytd">Year to Date</label>
+            </div>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-12 col-md-6 col-xl-4">
+              <div class="dashboard-card h-100">
+                <p class="text-muted mb-1">Total Spending</p>
+                <p class="h3 fw-bold mb-2 text-dark">$1,250.75</p>
+                <div class="stat-change text-success">
+                  <span class="material-symbols-outlined align-middle">arrow_upward</span>
+                  5.2% vs last month
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-md-6 col-xl-4">
+              <div class="dashboard-card h-100">
+                <p class="text-muted mb-1">Budget Remaining</p>
+                <p class="h3 fw-bold mb-2 text-dark">$749.25</p>
+                <div class="stat-change text-danger">
+                  <span class="material-symbols-outlined align-middle">arrow_downward</span>
+                  3.1% vs last month
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-md-6 col-xl-4">
+              <div class="dashboard-card h-100">
+                <p class="text-muted mb-1">Top Category</p>
+                <p class="h3 fw-bold mb-2 text-dark">Groceries</p>
+                <div class="stat-change text-success">
+                  <span class="material-symbols-outlined align-middle">arrow_upward</span>
+                  1.5% vs last month
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-heading d-flex align-items-center justify-content-between mt-5 mb-3">
+            <h2 class="h4 fw-bold mb-0 text-dark">Spending Analysis</h2>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-12 col-lg-7">
+              <div class="dashboard-card h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                  <h3 class="h6 fw-semibold mb-0 text-dark">Spending Trend</h3>
+                </div>
+                <div class="chart-placeholder mt-3">
+                  <span class="text-muted">Line chart placeholder</span>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-lg-5">
+              <div class="dashboard-card h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                  <h3 class="h6 fw-semibold mb-0 text-dark">Category Breakdown</h3>
+                </div>
+                <div class="chart-placeholder mt-3">
+                  <span class="text-muted">Donut chart placeholder</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-heading d-flex align-items-center justify-content-between mt-5 mb-3">
+            <h2 class="h4 fw-bold mb-0 text-dark">Recent Expenses</h2>
+          </div>
+
+          <div class="dashboard-card p-0 overflow-hidden">
+            <div class="table-responsive">
+              <table class="table align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th scope="col" class="text-uppercase text-muted small">Date</th>
+                    <th scope="col" class="text-uppercase text-muted small">Description</th>
+                    <th scope="col" class="text-uppercase text-muted small">Category</th>
+                    <th scope="col" class="text-uppercase text-muted small">Amount</th>
+                    <th scope="col" class="text-end text-uppercase text-muted small">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="text-muted">Oct 26, 2023</td>
+                    <td class="fw-semibold text-dark">Monthly Rent</td>
+                    <td>
+                      <span class="badge rounded-pill bg-soft-primary text-primary">
+                        Housing
+                      </span>
+                    </td>
+                    <td class="fw-semibold text-dark">$850.00</td>
+                    <td class="text-end">
+                      <button class="icon-btn text-muted">
+                        <span class="material-symbols-outlined">edit</span>
+                      </button>
+                      <button class="icon-btn text-muted">
+                        <span class="material-symbols-outlined">delete</span>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="text-muted">Oct 25, 2023</td>
+                    <td class="fw-semibold text-dark">Groceries from Walmart</td>
+                    <td>
+                      <span class="badge rounded-pill bg-soft-success text-success">
+                        Groceries
+                      </span>
+                    </td>
+                    <td class="fw-semibold text-dark">$72.45</td>
+                    <td class="text-end">
+                      <button class="icon-btn text-muted">
+                        <span class="material-symbols-outlined">edit</span>
+                      </button>
+                      <button class="icon-btn text-muted">
+                        <span class="material-symbols-outlined">delete</span>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="text-muted">Oct 24, 2023</td>
+                    <td class="fw-semibold text-dark">Gasoline</td>
+                    <td>
+                      <span class="badge rounded-pill bg-soft-warning text-warning">
+                        Transportation
+                      </span>
+                    </td>
+                    <td class="fw-semibold text-dark">$45.50</td>
+                    <td class="text-end">
+                      <button class="icon-btn text-muted">
+                        <span class="material-symbols-outlined">edit</span>
+                      </button>
+                      <button class="icon-btn text-muted">
+                        <span class="material-symbols-outlined">delete</span>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="text-muted">Oct 23, 2023</td>
+                    <td class="fw-semibold text-dark">Dinner with friends</td>
+                    <td>
+                      <span class="badge rounded-pill bg-soft-purple text-purple">
+                        Entertainment
+                      </span>
+                    </td>
+                    <td class="fw-semibold text-dark">$89.00</td>
+                    <td class="text-end">
+                      <button class="icon-btn text-muted">
+                        <span class="material-symbols-outlined">edit</span>
+                      </button>
+                      <button class="icon-btn text-muted">
+                        <span class="material-symbols-outlined">delete</span>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 {% endblock %}
