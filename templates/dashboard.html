@@ -4,70 +4,13 @@
 
 {% block content %}
   <section class="dashboard-page py-4">
-    <div class="container-fluid px-4">
-      <div class="dashboard-layout">
-        <aside class="dashboard-sidebar">
-          <div class="d-flex flex-column h-100">
-            <div class="d-flex flex-column gap-3">
-              <div class="d-flex align-items-center gap-2">
-                <span class="material-symbols-outlined text-primary fs-3">
-                  account_balance_wallet
-                </span>
-                <h1 class="h5 mb-0 fw-bold text-white">FinTrack</h1>
-              </div>
-              <div class="d-flex align-items-center gap-3">
-                <div
-                  class="avatar-circle"
-                  style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDNAj7cX6N64AhPevNB8AMzkYTHgEC-diokqlchSFUbvrUnw2HGUExTKox152erYnEcVD5e2Cg0PRsulyUJ3kNq26poSkFUeRyh70R-_dpS7bpEebdoAibYX9FIFf8nBmpNCb_GJZeMYrY4Z48DZ6vPkq8NqGyChd26Lk47_elnPJHil8EK5fjIfsyLhwrQtnpN-oa6yST_YJUoaDe91960Mb3phMWl4g6-W48Zr0hMGaYtsVwWa8FQ2lew5rGuOiEXt_YmLrtGg3p5");'
-                  aria-label="User avatar"
-                ></div>
-                <div class="d-flex flex-column">
-                  {% if 'user_id' in session %}
-                  <span class="fw-semibold text-white">{{ session.get('name') }}</span>
-                  <small class="text-secondary-lt">{{ session.get('email') }}</small>
-                  {% endif %}
-                </div>
-              </div>
-              <nav class="sidebar-nav d-flex flex-column gap-2">
-                <a class="sidebar-link active" href="#">
-                  <span class="material-symbols-outlined">dashboard</span>
-                  Dashboard
-                </a>
-                <a class="sidebar-link" href="#">
-                  <span class="material-symbols-outlined">bar_chart</span>
-                  Reports
-                </a>
-                <a class="sidebar-link" href="#">
-                  <span class="material-symbols-outlined">wallet</span>
-                  Budgets
-                </a>
-                <a class="sidebar-link" href="#">
-                  <span class="material-symbols-outlined">settings</span>
-                  Settings
-                </a>
-              </nav>
-            </div>
-            <div class="mt-auto d-flex flex-column gap-3">
-              <a class="btn btn-primary w-100 fw-semibold" href="#">
-                Add Expense
-              </a>
-              <div class="d-flex flex-column gap-2">
-                <a class="sidebar-link" href="#">
-                  <span class="material-symbols-outlined">help</span>
-                  Help
-                </a>
-                <a class="sidebar-link" href="{{ url_for('logout') }}">
-                  <span class="material-symbols-outlined">logout</span>
-                  Log out
-                </a>
-              </div>
-            </div>
-          </div>
-        </aside>
-
+    <div class="container px-4">
         <div class="dashboard-main">
           <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
             <p class="h1 fw-black mb-0 text-dark">Dashboard</p>
+            <a class="btn btn-primary fw-semibold" href="#">
+             <i class="bi bi-plus-circle"></i> Add Expences
+            </a>
           </div>
 
           <div class="segmented-wrapper mb-4">
@@ -252,7 +195,6 @@
               </table>
             </div>
           </div>
-        </div>
       </div>
     </div>
   </section>

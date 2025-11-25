@@ -1,6 +1,11 @@
-<nav class="navbar navbar-expand-md navbar-light bg-white border-bottom sticky-top">
+<nav
+  class="navbar navbar-expand-md navbar-light bg-white border-bottom sticky-top"
+>
   <div class="container">
-    <a class="navbar-brand d-flex align-items-center" href="{{ url_for('home') }}">
+    <a
+      class="navbar-brand d-flex align-items-center"
+      href="{{ url_for('home') }}"
+    >
       <span class="material-symbols-outlined text-primary me-2">
         account_balance_wallet
       </span>
@@ -21,6 +26,20 @@
 
     <div class="collapse navbar-collapse" id="mainNavbar">
       <ul class="navbar-nav mx-auto mb-2 mb-md-0">
+        {% if 'user_id' in session %}
+        <li class="nav-item">
+          <a class="nav-link" href="#features">Dashboard</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#features">My Expences</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#features">Budgets</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#features">Settings</a>
+        </li>
+        {% else %}
         <li class="nav-item">
           <a class="nav-link" href="#features">Features</a>
         </li>
@@ -30,19 +49,30 @@
         <li class="nav-item">
           <a class="nav-link" href="#about">About</a>
         </li>
-      </ul>
-             
-        <div class="d-flex gap-2">
-          {% if 'user_id' in session %}          
-            <a class="btn btn-outline-danger btn-sm" href="{{ url_for('logout') }}">Logout</a>          
-          {% else %}        
-          <a href="{{ url_for('signin') }}" class="btn btn-outline-primary btn-sm">Sign In</a>
-          <a href="{{ url_for('signup') }}" class="btn btn-primary btn-sm">Sign Up</a>
-               
         {% endif %}
+      </ul>
+
+      <div class="d-flex gap-2">
+        {% if 'user_id' in session %}
+        <div>          
+          <span class="text-muted px-2">{{ session.get('name') }}</span>
+          <a
+            class="btn btn-outline-danger btn-sm"
+            href="{{ url_for('logout') }}"
+            >Logout</a
+          >          
         </div>
-        
-      
+
+        {% else %}
+        <a href="{{ url_for('signin') }}" class="btn btn-outline-primary btn-sm"
+          >Sign In</a
+        >
+        <a href="{{ url_for('signup') }}" class="btn btn-primary btn-sm"
+          >Sign Up</a
+        >
+
+        {% endif %}
+      </div>
     </div>
   </div>
 </nav>
