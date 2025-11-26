@@ -8,7 +8,10 @@
         <div class="dashboard-main">
           <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
             <p class="h1 fw-black mb-0 text-dark">Dashboard</p>
-            <a class="btn btn-primary fw-semibold" href="#">
+            <a class="btn btn-primary fw-semibold" 
+            href="#"
+            data-bs-toggle="modal"
+            data-bs-target="#addExpenceModal">
              <i class="bi bi-plus-circle"></i> Add Expences
             </a>
           </div>
@@ -46,7 +49,9 @@
             <div class="col-12 col-md-6 col-xl-4">
               <div class="dashboard-card h-100">
                 <p class="text-muted mb-1">Total Spending</p>
-                <p class="h3 fw-bold mb-2 text-dark">$1,250.75</p>
+                <p class="h3 fw-bold mb-2 text-dark">
+                  ₹{{ '{:,.2f}'.format(total_spending or 0) }}
+                </p>
                 <div class="stat-change text-success">
                   <span class="material-symbols-outlined align-middle">arrow_upward</span>
                   5.2% vs last month
@@ -56,7 +61,7 @@
             <div class="col-12 col-md-6 col-xl-4">
               <div class="dashboard-card h-100">
                 <p class="text-muted mb-1">Budget Remaining</p>
-                <p class="h3 fw-bold mb-2 text-dark">$749.25</p>
+                <p class="h3 fw-bold mb-2 text-dark">₹749.25</p>
                 <div class="stat-change text-danger">
                   <span class="material-symbols-outlined align-middle">arrow_downward</span>
                   3.1% vs last month
@@ -119,78 +124,38 @@
                   </tr>
                 </thead>
                 <tbody>
+                  {% if recent_expenses %}
+                  {% for expense in recent_expenses %}
                   <tr>
-                    <td class="text-muted">Oct 26, 2023</td>
-                    <td class="fw-semibold text-dark">Monthly Rent</td>
+                    <td class="text-muted">
+                      {{ expense.date.strftime('%b %d, %Y') if expense.date else '' }}
+                    </td>
+                    <td class="fw-semibold text-dark">{{ expense.description }}</td>
                     <td>
                       <span class="badge rounded-pill bg-soft-primary text-primary">
-                        Housing
+                        {{ expense.category.name if expense.category else 'Uncategorized' }}
                       </span>
                     </td>
-                    <td class="fw-semibold text-dark">$850.00</td>
+                    <td class="fw-semibold text-dark">
+                      ₹{{ '{:,.2f}'.format(expense.amount) }}
+                    </td>
                     <td class="text-end">
-                      <button class="icon-btn text-muted">
+                      <button class="icon-btn text-muted" disabled>
                         <span class="material-symbols-outlined">edit</span>
                       </button>
-                      <button class="icon-btn text-muted">
+                      <button class="icon-btn text-muted" disabled>
                         <span class="material-symbols-outlined">delete</span>
                       </button>
                     </td>
                   </tr>
+                  {% endfor %}
+                  {% else %}
                   <tr>
-                    <td class="text-muted">Oct 25, 2023</td>
-                    <td class="fw-semibold text-dark">Groceries from Walmart</td>
-                    <td>
-                      <span class="badge rounded-pill bg-soft-success text-success">
-                        Groceries
-                      </span>
-                    </td>
-                    <td class="fw-semibold text-dark">$72.45</td>
-                    <td class="text-end">
-                      <button class="icon-btn text-muted">
-                        <span class="material-symbols-outlined">edit</span>
-                      </button>
-                      <button class="icon-btn text-muted">
-                        <span class="material-symbols-outlined">delete</span>
-                      </button>
+                    <td colspan="5" class="text-center text-muted py-4">
+                      No expenses yet. Add your first expense to see it here.
                     </td>
                   </tr>
-                  <tr>
-                    <td class="text-muted">Oct 24, 2023</td>
-                    <td class="fw-semibold text-dark">Gasoline</td>
-                    <td>
-                      <span class="badge rounded-pill bg-soft-warning text-warning">
-                        Transportation
-                      </span>
-                    </td>
-                    <td class="fw-semibold text-dark">$45.50</td>
-                    <td class="text-end">
-                      <button class="icon-btn text-muted">
-                        <span class="material-symbols-outlined">edit</span>
-                      </button>
-                      <button class="icon-btn text-muted">
-                        <span class="material-symbols-outlined">delete</span>
-                      </button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="text-muted">Oct 23, 2023</td>
-                    <td class="fw-semibold text-dark">Dinner with friends</td>
-                    <td>
-                      <span class="badge rounded-pill bg-soft-purple text-purple">
-                        Entertainment
-                      </span>
-                    </td>
-                    <td class="fw-semibold text-dark">$89.00</td>
-                    <td class="text-end">
-                      <button class="icon-btn text-muted">
-                        <span class="material-symbols-outlined">edit</span>
-                      </button>
-                      <button class="icon-btn text-muted">
-                        <span class="material-symbols-outlined">delete</span>
-                      </button>
-                    </td>
-                  </tr>
+                  {% endif %}
                 </tbody>
               </table>
             </div>
@@ -198,4 +163,20 @@
       </div>
     </div>
   </section>
-{% endblock %}
+  <!-- Add expence form -->
+   <div class="modal fade" id="addExpenceModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold">Add Expense</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        {% include "partials/addExpenceForm.html" %}
+      </div>
+    </div>
+  </div>
+</div>
+
+
+  {% endblock %}

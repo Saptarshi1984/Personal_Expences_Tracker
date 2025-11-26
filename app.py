@@ -1,5 +1,8 @@
 import os
+from datetime import date, datetime
+from decimal import Decimal, InvalidOperation
 from flask import Flask, render_template, redirect, url_for, flash, request, session
+from sqlalchemy import func as sa_func
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, Email, EqualTo, Length
@@ -121,7 +124,76 @@ def signup():
 def dashboard():
     if 'user_id' not in session:
         return redirect(url_for('signin'))
-    return render_template('dashboard.html')
+    user_id = session.get('user_id')
+    categories = Category.query.order_by(Category.name.asc()).all()
+    total_spending = (
+        db.session.query(sa_func.coalesce(sa_func.sum(Expence.amount), 0))
+        .filter(Expence.user_id == user_id)
+        .scalar()
+    )
+    if not isinstance(total_spending, Decimal):
+        total_spending = Decimal(total_spending)
+    recent_expenses = (
+        Expence.query.filter_by(user_id=user_id)
+        .order_by(Expence.date.desc(), Expence.id.desc())
+        .limit(4)
+        .all()
+    )
+    return render_template(
+        'dashboard.html',
+        categories=categories,
+        today=date.today().isoformat(),
+        recent_expenses=recent_expenses,
+        total_spending=total_spending,
+    )
+
+@app.route('/add_expense', methods=['POST'])
+def add_expense():
+    if 'user_id' not in session:
+        flash("Please sign in to add expenses.", "warning")
+        return redirect(url_for('signin'))
+
+    amount_raw = request.form.get('amount')
+    expense_date_raw = request.form.get('date')
+    category_name = request.form.get('category', '').strip()
+    description = request.form.get('description', '').strip()
+
+    if not amount_raw or not expense_date_raw or not category_name or not description:
+        flash("All required fields must be filled.", "danger")
+        return redirect(url_for('dashboard'))
+
+    try:
+        amount = Decimal(amount_raw)
+    except (InvalidOperation, TypeError):
+        flash("Please enter a valid amount.", "danger")
+        return redirect(url_for('dashboard'))
+
+    try:
+        expense_date = datetime.strptime(expense_date_raw, "%Y-%m-%d").date()
+    except (ValueError, TypeError):
+        flash("Please enter a valid date.", "danger")
+        return redirect(url_for('dashboard'))
+
+    # Map the submitted category name to a Category record (create if missing)
+    category = Category.query.filter_by(name=category_name).first()
+    if not category:
+        category = Category(name=category_name)
+        db.session.add(category)
+        db.session.flush()  # ensure category.id is available for the expense
+
+    new_expense = Expence(
+        user_id=session['user_id'],
+        category_id=category.id,
+        amount=amount,
+        description=description,
+        date=expense_date,
+    )
+
+    db.session.add(new_expense)
+    db.session.commit()
+
+    flash("Expense added successfully.", "success")
+    return redirect(url_for('dashboard'))
 
 @app.route('/logout')
 def logout():
