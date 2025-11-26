@@ -62,6 +62,9 @@ def home():
 
 @app.route('/SignIn', methods=['GET', 'POST'])
 def signin():
+    if 'user_id' in session:
+        return redirect(url_for('dashboard'))
+        
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
@@ -86,6 +89,8 @@ def signin():
 @app.route('/SignUp', methods=['GET', 'POST'])
 def signup():
     form = SignupForm()
+    if 'user_id' in session:
+        return redirect(url_for('dashboard'))
     
     if form.validate_on_submit():
         # 1. Check if email is already registered
