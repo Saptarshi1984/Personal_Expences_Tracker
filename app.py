@@ -1,7 +1,7 @@
 import os
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
-from flask import Flask, render_template, redirect, url_for, flash, request, session
+from flask import Flask, render_template, redirect, url_for, flash, request, session, abort
 from sqlalchemy import func as sa_func
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
@@ -139,13 +139,145 @@ def dashboard():
         .limit(4)
         .all()
     )
+
+    category_totals = (
+        db.session.query(
+            Category.name,
+            sa_func.coalesce(sa_func.sum(Expence.amount), 0).label("total"),
+        )
+        .outerjoin(Expence, (Category.id == Expence.category_id) & (Expence.user_id == user_id))
+        .group_by(Category.id)
+        .order_by(Category.name.asc())
+        .all()
+    )
+    chart_labels = [row[0] for row in category_totals]
+    chart_values = [float(row[1]) for row in category_totals]
+
     return render_template(
         'dashboard.html',
         categories=categories,
         today=date.today().isoformat(),
         recent_expenses=recent_expenses,
         total_spending=total_spending,
+        chart_labels=chart_labels,
+        chart_values=chart_values,
     )
+
+
+
+@app.route('/myexpence')
+def myexpence():
+    if 'user_id' not in session:
+        return redirect(url_for('signin'))
+
+    user_id = session.get('user_id')
+    selected_category_id = request.args.get('category_id', type=int)
+    categories = Category.query.order_by(Category.name.asc()).all()
+    expenses_query = Expence.query.filter_by(user_id=user_id)
+    if selected_category_id:
+        expenses_query = expenses_query.filter(Expence.category_id == selected_category_id)
+
+    expenses = expenses_query.order_by(Expence.date.desc(), Expence.id.desc()).all()
+
+    total_spending_query = db.session.query(sa_func.coalesce(sa_func.sum(Expence.amount), 0)).filter(
+        Expence.user_id == user_id
+    )
+    if selected_category_id:
+        total_spending_query = total_spending_query.filter(Expence.category_id == selected_category_id)
+
+    total_spending = total_spending_query.scalar()
+    if not isinstance(total_spending, Decimal):
+        total_spending = Decimal(total_spending)
+
+    return render_template(
+        'myexpence.html',
+        categories=categories,
+        expenses=expenses,
+        today=date.today().isoformat(),
+        total_spending=total_spending,
+        selected_category_id=selected_category_id,
+    )
+
+
+
+@app.route('/expense/<int:expense_id>/edit', methods=['GET', 'POST'])
+def edit_expense(expense_id):
+    if 'user_id' not in session:
+        flash("Please sign in to edit expenses.", "warning")
+        return redirect(url_for('signin'))
+
+    user_id = session.get('user_id')
+    expense = Expence.query.filter_by(id=expense_id, user_id=user_id).first()
+    if not expense:
+        flash("Expense not found or access denied.", "warning")
+        return redirect(url_for('myexpence'))
+
+    if request.method == 'POST':
+        amount_raw = request.form.get('amount')
+        expense_date_raw = request.form.get('date')
+        category_name = request.form.get('category', '').strip()
+        description = request.form.get('description', '').strip()
+
+        if not amount_raw or not expense_date_raw or not category_name or not description:
+            flash("All required fields must be filled.", "danger")
+            return redirect(url_for('edit_expense', expense_id=expense_id, next=request.args.get('next')))
+
+        try:
+            amount = Decimal(amount_raw)
+        except (InvalidOperation, TypeError):
+            flash("Please enter a valid amount.", "danger")
+            return redirect(url_for('edit_expense', expense_id=expense_id, next=request.args.get('next')))
+
+        try:
+            expense_date = datetime.strptime(expense_date_raw, "%Y-%m-%d").date()
+        except (ValueError, TypeError):
+            flash("Please enter a valid date.", "danger")
+            return redirect(url_for('edit_expense', expense_id=expense_id, next=request.args.get('next')))
+
+        category = Category.query.filter_by(name=category_name).first()
+        if not category:
+            category = Category(name=category_name)
+            db.session.add(category)
+            db.session.flush()
+
+        expense.category_id = category.id
+        expense.amount = amount
+        expense.description = description
+        expense.date = expense_date
+
+        db.session.commit()
+        flash("Expense updated successfully.", "success")
+
+        next_url = request.args.get('next') or request.form.get('next')
+        if not next_url or not next_url.startswith('/'):
+            next_url = url_for('myexpence')
+        return redirect(next_url)
+
+    next_url = request.args.get('next')
+    if not next_url or not next_url.startswith('/'):
+        next_url = url_for('myexpence')
+    return redirect(next_url)
+
+@app.route('/expense/<int:expense_id>/delete', methods=['POST'])
+def delete_expense(expense_id):
+    if 'user_id' not in session:
+        flash("Please sign in to delete expenses.", "warning")
+        return redirect(url_for('signin'))
+
+    user_id = session.get('user_id')
+    expense = Expence.query.filter_by(id=expense_id, user_id=user_id).first()
+    if not expense:
+        flash("Expense not found or access denied.", "warning")
+        return redirect(url_for('myexpence'))
+
+    db.session.delete(expense)
+    db.session.commit()
+    flash("Expense deleted. This action cannot be undone.", "warning")
+
+    next_url = request.form.get('next') or request.args.get('next')
+    if not next_url or not next_url.startswith('/'):
+        next_url = url_for('myexpence')
+    return redirect(next_url)
 
 @app.route('/add_expense', methods=['POST'])
 def add_expense():

@@ -91,7 +91,7 @@
                   <h3 class="h6 fw-semibold mb-0 text-dark">Spending Trend</h3>
                 </div>
                 <div class="chart-placeholder mt-3">
-                  <span class="text-muted">Line chart placeholder</span>
+                  <canvas id="expenseChart"></canvas>
                 </div>
               </div>
             </div>
@@ -140,12 +140,32 @@
                       ₹{{ '{:,.2f}'.format(expense.amount) }}
                     </td>
                     <td class="text-end">
-                      <button class="icon-btn text-muted" disabled>
+                      <button
+                        type="button"
+                        class="icon-btn text-primary"
+                        data-bs-toggle="modal"
+                        data-bs-target="#addExpenceModal"
+                        data-mode="edit"
+                        data-action="{{ url_for('edit_expense', expense_id=expense.id, next=request.full_path) }}"
+                        data-amount="{{ expense.amount }}"
+                        data-date="{{ expense.date.isoformat() if expense.date else '' }}"
+                        data-category="{{ expense.category.name if expense.category else '' }}"
+                        data-description="{{ expense.description|e }}"
+                        title="Edit expense"
+                      >
                         <span class="material-symbols-outlined">edit</span>
                       </button>
-                      <button class="icon-btn text-muted" disabled>
-                        <span class="material-symbols-outlined">delete</span>
-                      </button>
+                      <form
+                        class="d-inline"
+                        method="POST"
+                        action="{{ url_for('delete_expense', expense_id=expense.id, next=request.full_path) }}"
+                        onsubmit="return confirm('Delete this expense?');"
+                      >
+                        <input type="hidden" name="next" value="{{ request.full_path }}">
+                        <button type="submit" class="icon-btn text-danger" title="Delete expense">
+                          <span class="material-symbols-outlined">delete</span>
+                        </button>
+                      </form>
                     </td>
                   </tr>
                   {% endfor %}
@@ -172,11 +192,72 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        {% include "partials/addExpenceForm.html" %}
+          {% include "partials/addExpenceForm.html" %}
+        </div>
       </div>
     </div>
   </div>
-</div>
 
+{% endblock %}
 
-  {% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+(() => {
+  const modalEl = document.getElementById('addExpenceModal');
+  if (!modalEl) return;
+  modalEl.addEventListener('show.bs.modal', event => {
+    const button = event.relatedTarget;
+    const form = modalEl.querySelector('#expenseForm');
+    if (!form) return;
+
+    const titleEl = modalEl.querySelector('#expenseModalTitle');
+    const badgeEl = modalEl.querySelector('#expenseModalBadge');
+    const submitBtn = modalEl.querySelector('#expenseSubmitBtn');
+    const amountInput = form.querySelector('input[name="amount"]');
+    const dateInput = form.querySelector('input[name="date"]');
+    const descInput = form.querySelector('input[name="description"]');
+    const categorySelect = form.querySelector('select[name="category"]');
+
+    const defaultAction = form.dataset.defaultAction || form.getAttribute('action');
+    const defaultDate = form.dataset.defaultDate || new Date().toISOString().slice(0, 10);
+    const mode = button?.dataset.mode;
+
+    if (mode === 'edit') {
+      form.action = button.dataset.action || defaultAction;
+      if (amountInput) amountInput.value = button.dataset.amount || '';
+      if (dateInput) dateInput.value = button.dataset.date || defaultDate;
+      if (descInput) descInput.value = button.dataset.description || '';
+
+      if (categorySelect) {
+        const catValue = button.dataset.category || '';
+        const optionExists = Array.from(categorySelect.options).some(opt => opt.value === catValue);
+        if (catValue && !optionExists) {
+          const opt = new Option(catValue, catValue);
+          categorySelect.add(opt);
+        }
+        categorySelect.value = catValue;
+      }
+
+      if (titleEl) titleEl.textContent = 'Edit Expense';
+      if (badgeEl) badgeEl.textContent = 'Edit';
+      if (submitBtn) submitBtn.innerHTML = '<i class="bi bi-plus-circle me-1"></i> Update Expense';
+    } else {
+      form.action = defaultAction;
+      form.reset();
+      if (dateInput) dateInput.value = defaultDate;
+      if (titleEl) titleEl.textContent = 'Add Expense';
+      if (badgeEl) badgeEl.textContent = 'New';
+      if (submitBtn) submitBtn.innerHTML = '<i class="bi bi-plus-circle me-1"></i> Save Expense';
+    }
+  });
+})();
+</script>
+<script>
+  window.expenseChartData = {
+    labels: {{ chart_labels|default([], true)|tojson }},
+    values: {{ chart_values|default([], true)|tojson }},
+  };
+</script>
+<script src="{{ url_for('static', filename='js/chart.js') }}"></script>
+{% endblock %}

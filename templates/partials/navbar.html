@@ -28,10 +28,10 @@
       <ul class="navbar-nav mx-auto mb-2 mb-md-0">
         {% if 'user_id' in session %}
         <li class="nav-item">
-          <a class="nav-link" href="#features">Dashboard</a>
+          <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="#features">My Expences</a>
+          <a class="nav-link" href="{{ url_for('myexpence') }}">My Expences</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="#features">Budgets</a>

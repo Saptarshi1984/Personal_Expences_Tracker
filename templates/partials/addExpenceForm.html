@@ -1,11 +1,23 @@
+{% set is_edit = expense is defined and expense %}
+{% set action_url = form_action | default(url_for('add_expense')) %}
+
 <div class="card shadow-sm border-0">
   <div class="card-body">
     <div class="d-flex align-items-center justify-content-between mb-3">
-      <h2 class="h5 fw-bold mb-0 text-dark">Add Expense</h2>
-      <span class="badge bg-primary bg-opacity-10 text-primary">New</span>
+      <h2 id="expenseModalTitle" class="h5 fw-bold mb-0 text-dark">{{ form_title | default('Add Expense') }}</h2>
+      <span id="expenseModalBadge" class="badge bg-primary bg-opacity-10 text-primary">
+        {{ badge_label | default('Edit' if is_edit else 'New') }}
+      </span>
     </div>
 
-    <form method="POST" action="{{ url_for('add_expense') }}" class="row g-3">
+    <form
+      id="expenseForm"
+      method="POST"
+      action="{{ action_url }}"
+      class="row g-3"
+      data-default-action="{{ url_for('add_expense') }}"
+      data-default-date="{{ today|default('', true) }}"
+    >
       {% if csrf_token is defined %} {{ csrf_token() }} {% endif %}
 
       <input
@@ -25,6 +37,7 @@
             class="form-control"
             name="amount"
             placeholder="0.00"
+            value="{{ expense.amount if is_edit else '' }}"
             required
           />
         </div>
@@ -36,7 +49,7 @@
           type="date"
           class="form-control"
           name="date"
-          value="{{ today|default('', true) }}"
+          value="{{ expense.date.isoformat() if is_edit and expense.date else today|default('', true) }}"
           required
         />
       </div>
@@ -45,11 +58,17 @@
         <label class="form-label fw-semibold text-dark">Category</label>
         <select class="form-select" name="category" required>
           <option value="" selected disabled>Choose category</option>
-          <option>Groceries</option>
-          <option>Rent</option>
-          <option>Transportation</option>
-          <option>Cleaning</option>
-          <option>Vacataion</option>
+          {% if categories %}
+            {% for category in categories %}
+            <option value="{{ category.name }}" {% if is_edit and expense.category and expense.category.id == category.id %}selected{% endif %}>{{ category.name }}</option>
+            {% endfor %}
+          {% else %}
+            <option>Groceries</option>
+            <option>Rent</option>
+            <option>Transportation</option>
+            <option>Cleaning</option>
+            <option>Vacataion</option>
+          {% endif %}
         </select>
       </div>
 
@@ -60,6 +79,7 @@
           class="form-control"
           name="description"
           placeholder="Short note (e.g., Groceries at Walmart)"
+          value="{{ expense.description if is_edit else '' }}"
           maxlength="255"
           required
         />
@@ -85,9 +105,9 @@
         >
           Cancel
         </button>
-        <button type="submit" class="btn btn-primary fw-semibold">
+        <button id="expenseSubmitBtn" type="submit" class="btn btn-primary fw-semibold">
           <i class="bi bi-plus-circle me-1"></i>
-          Save Expense
+          {{ submit_label | default('Save Expense') }}
         </button>
       </div>
     </form>

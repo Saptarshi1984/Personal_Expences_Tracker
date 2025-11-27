@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %}My Expenses - ExpenseTracker{% endblock %}
+
+{% block content %}
+<section class="dashboard-page py-4">
+  <div class="container px-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+      <div>
+        <p class="h1 fw-black mb-1 text-dark">My Expenses</p>
+        <p class="text-muted mb-0">Review every expense you've logged in one place.</p>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-outline-secondary" href="{{ url_for('dashboard') }}">
+          <i class="bi bi-speedometer2 me-1"></i>
+          Dashboard
+        </a>
+        <button class="btn btn-primary fw-semibold" data-bs-toggle="modal" data-bs-target="#addExpenceModal">
+          <i class="bi bi-plus-circle"></i> Add Expense
+        </button>
+      </div>
+    </div>
+
+    <form class="dashboard-card mb-4" method="get" action="{{ url_for('myexpence') }}">
+      <div class="row g-3 align-items-end">
+        <div class="col-lg-8 col-md-7">
+          <label class="form-label fw-semibold text-dark mb-1">Filter by category</label>
+          <select class="form-select" name="category_id">
+            <option value="">All categories</option>
+            {% for category in categories %}
+            <option value="{{ category.id }}" {% if selected_category_id == category.id %}selected{% endif %}>
+              {{ category.name }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-lg-4 col-md-5 d-flex gap-2">
+          <button type="submit" class="btn btn-primary w-100 fw-semibold">Apply Filter</button>
+          <a class="btn btn-outline-secondary w-100" href="{{ url_for('myexpence') }}">Reset</a>
+        </div>
+      </div>
+    </form>
+
+    <div class="dashboard-card mb-4">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div>
+          <p class="text-muted mb-1">Total Spending (all time)</p>
+          <p class="h3 fw-bold mb-0 text-dark">$ {{ '{:,.2f}'.format(total_spending or 0) }}</p>
+        </div>
+        <div class="text-muted small">
+          {% if selected_category_id %}
+            Showing {{ expenses|length if expenses is not none else 0 }} in selected category
+          {% else %}
+            Showing {{ expenses|length if expenses is not none else 0 }} entries
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="dashboard-card p-0 overflow-hidden">
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th scope="col" class="text-uppercase text-muted small">Date</th>
+              <th scope="col" class="text-uppercase text-muted small">Description</th>
+              <th scope="col" class="text-uppercase text-muted small">Category</th>
+              <th scope="col" class="text-uppercase text-muted small">Amount</th>
+              <th scope="col" class="text-end text-uppercase text-muted small">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if expenses %}
+            {% for expense in expenses %}
+            <tr>
+              <td class="text-muted">{{ expense.date.strftime('%b %d, %Y') if expense.date else '' }}</td>
+              <td class="fw-semibold text-dark">{{ expense.description }}</td>
+              <td>
+                <span class="badge rounded-pill bg-soft-primary text-primary">
+                  {{ expense.category.name if expense.category else 'Uncategorized' }}
+                </span>
+              </td>
+              <td class="fw-semibold text-dark">$ {{ '{:,.2f}'.format(expense.amount) }}</td>
+              <td class="text-end">
+                <button
+                  type="button"
+                  class="icon-btn text-primary"
+                  data-bs-toggle="modal"
+                  data-bs-target="#addExpenceModal"
+                  data-mode="edit"
+                  data-action="{{ url_for('edit_expense', expense_id=expense.id, next=request.full_path) }}"
+                  data-amount="{{ expense.amount }}"
+                  data-date="{{ expense.date.isoformat() if expense.date else '' }}"
+                  data-category="{{ expense.category.name if expense.category else '' }}"
+                  data-description="{{ expense.description|e }}"
+                  title="Edit expense"
+                >
+                  <span class="material-symbols-outlined">edit</span>
+                </button>
+                <form
+                  class="d-inline"
+                  method="POST"
+                  action="{{ url_for('delete_expense', expense_id=expense.id, next=request.full_path) }}"
+                  onsubmit="return confirm('Delete this expense?');"
+                >
+                  <input type="hidden" name="next" value="{{ request.full_path }}">
+                  <button type="submit" class="icon-btn text-danger" title="Delete expense">
+                    <span class="material-symbols-outlined">delete</span>
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+              <td colspan="5" class="text-center text-muted py-4">
+                No expenses yet. Add your first expense to see it here.
+              </td>
+            </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="modal fade" id="addExpenceModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold">Add Expense</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        {% include "partials/addExpenceForm.html" %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const modalEl = document.getElementById('addExpenceModal');
+  if (!modalEl) return;
+  modalEl.addEventListener('show.bs.modal', event => {
+    const button = event.relatedTarget;
+    const form = modalEl.querySelector('#expenseForm');
+    if (!form) return;
+
+    const titleEl = modalEl.querySelector('#expenseModalTitle');
+    const badgeEl = modalEl.querySelector('#expenseModalBadge');
+    const submitBtn = modalEl.querySelector('#expenseSubmitBtn');
+    const amountInput = form.querySelector('input[name=\"amount\"]');
+    const dateInput = form.querySelector('input[name=\"date\"]');
+    const descInput = form.querySelector('input[name=\"description\"]');
+    const categorySelect = form.querySelector('select[name=\"category\"]');
+
+    const defaultAction = form.dataset.defaultAction || form.getAttribute('action');
+    const defaultDate = form.dataset.defaultDate || new Date().toISOString().slice(0, 10);
+    const mode = button?.dataset.mode;
+
+    if (mode === 'edit') {
+      form.action = button.dataset.action || defaultAction;
+      if (amountInput) amountInput.value = button.dataset.amount || '';
+      if (dateInput) dateInput.value = button.dataset.date || defaultDate;
+      if (descInput) descInput.value = button.dataset.description || '';
+
+      if (categorySelect) {
+        const catValue = button.dataset.category || '';
+        const optionExists = Array.from(categorySelect.options).some(opt => opt.value === catValue);
+        if (catValue && !optionExists) {
+          const opt = new Option(catValue, catValue);
+          categorySelect.add(opt);
+        }
+        categorySelect.value = catValue;
+      }
+
+      if (titleEl) titleEl.textContent = 'Edit Expense';
+      if (badgeEl) badgeEl.textContent = 'Edit';
+      if (submitBtn) submitBtn.innerHTML = '<i class=\"bi bi-plus-circle me-1\"></i> Update Expense';
+    } else {
+      form.action = defaultAction;
+      form.reset();
+      if (dateInput) dateInput.value = defaultDate;
+      if (titleEl) titleEl.textContent = 'Add Expense';
+      if (badgeEl) badgeEl.textContent = 'New';
+      if (submitBtn) submitBtn.innerHTML = '<i class=\"bi bi-plus-circle me-1\"></i> Save Expense';
+    }
+  });
+})();
+</script>
+
+{% endblock %}
