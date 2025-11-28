@@ -90,7 +90,7 @@
                 <div class="d-flex align-items-center justify-content-between">
                   <h3 class="h6 fw-semibold mb-0 text-dark">Spending Trend</h3>
                 </div>
-                <div class="chart-placeholder mt-3">
+                <div class="chart-fill mt-3 flex-grow-1">
                   <canvas id="expenseChart"></canvas>
                 </div>
               </div>
@@ -100,8 +100,8 @@
                 <div class="d-flex align-items-center justify-content-between">
                   <h3 class="h6 fw-semibold mb-0 text-dark">Category Breakdown</h3>
                 </div>
-                <div class="chart-placeholder mt-3">
-                  <span class="text-muted">Donut chart placeholder</span>
+                <div class="chart-fill mt-3 flex-grow-1">
+                  <canvas id="donutChart"></canvas>
                 </div>
               </div>
             </div>
@@ -202,62 +202,93 @@
 
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
-(() => {
-  const modalEl = document.getElementById('addExpenceModal');
-  if (!modalEl) return;
-  modalEl.addEventListener('show.bs.modal', event => {
-    const button = event.relatedTarget;
-    const form = modalEl.querySelector('#expenseForm');
-    if (!form) return;
-
-    const titleEl = modalEl.querySelector('#expenseModalTitle');
-    const badgeEl = modalEl.querySelector('#expenseModalBadge');
-    const submitBtn = modalEl.querySelector('#expenseSubmitBtn');
-    const amountInput = form.querySelector('input[name="amount"]');
-    const dateInput = form.querySelector('input[name="date"]');
-    const descInput = form.querySelector('input[name="description"]');
-    const categorySelect = form.querySelector('select[name="category"]');
-
-    const defaultAction = form.dataset.defaultAction || form.getAttribute('action');
-    const defaultDate = form.dataset.defaultDate || new Date().toISOString().slice(0, 10);
-    const mode = button?.dataset.mode;
-
-    if (mode === 'edit') {
-      form.action = button.dataset.action || defaultAction;
-      if (amountInput) amountInput.value = button.dataset.amount || '';
-      if (dateInput) dateInput.value = button.dataset.date || defaultDate;
-      if (descInput) descInput.value = button.dataset.description || '';
-
-      if (categorySelect) {
-        const catValue = button.dataset.category || '';
-        const optionExists = Array.from(categorySelect.options).some(opt => opt.value === catValue);
-        if (catValue && !optionExists) {
-          const opt = new Option(catValue, catValue);
-          categorySelect.add(opt);
-        }
-        categorySelect.value = catValue;
-      }
-
-      if (titleEl) titleEl.textContent = 'Edit Expense';
-      if (badgeEl) badgeEl.textContent = 'Edit';
-      if (submitBtn) submitBtn.innerHTML = '<i class="bi bi-plus-circle me-1"></i> Update Expense';
-    } else {
-      form.action = defaultAction;
-      form.reset();
-      if (dateInput) dateInput.value = defaultDate;
-      if (titleEl) titleEl.textContent = 'Add Expense';
-      if (badgeEl) badgeEl.textContent = 'New';
-      if (submitBtn) submitBtn.innerHTML = '<i class="bi bi-plus-circle me-1"></i> Save Expense';
-    }
-  });
-})();
-</script>
-<script>
+  // 1) Data from Flask -> JS
   window.expenseChartData = {
-    labels: {{ chart_labels|default([], true)|tojson }},
-    values: {{ chart_values|default([], true)|tojson }},
+    labels: {{ chart_labels | default([], true) | tojson }},
+    values: {{ chart_values | default([], true) | tojson }}
   };
 </script>
-<script src="{{ url_for('static', filename='js/chart.js') }}"></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const payload = window.expenseChartData || { labels: [], values: [] };
+    const labels = payload.labels || [];
+    const values = payload.values || [];
+
+    const colors = [
+      "rgba(75, 192, 192, 0.7)",
+      "rgba(54, 162, 235, 0.7)",
+      "rgba(255, 206, 86, 0.7)",
+      "rgba(255, 99, 132, 0.7)",
+      "rgba(153, 102, 255, 0.7)",
+      "rgba(255, 159, 64, 0.7)",
+    ];
+
+    // 2) Bar chart (Spending Trend)
+    const barCanvas = document.getElementById("expenseChart");
+    if (barCanvas && typeof Chart !== "undefined") {
+      const barCtx = barCanvas.getContext("2d");
+
+      new Chart(barCtx, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [
+            {
+              label: "Expenses",
+              data: values,
+              backgroundColor: labels.map(
+                (_, idx) => colors[idx % colors.length]
+              ),
+              borderRadius: 8,
+            },
+          ],
+        },
+        options: {
+          responsive: true,          
+          plugins: {
+            legend: { display: true },
+          },
+          scales: {
+            y: { beginAtZero: true },
+          },
+        },
+      });
+    }
+
+    // Doughnut chart (Category Breakdown)
+    const doughnutCanvas = document.getElementById("donutChart");
+    if (doughnutCanvas && typeof Chart !== "undefined") {
+      const doughnutCtx = doughnutCanvas.getContext("2d");
+
+      new Chart(doughnutCtx, {
+        type: "doughnut",
+        data: {
+          labels,
+          datasets: [
+            {
+              data: values,
+              backgroundColor: labels.map(
+                (_, idx) => colors[idx % colors.length]
+              ),
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: "bottom",
+            },
+          },
+        },
+      });
+    }
+  });
+</script>
 {% endblock %}
+
