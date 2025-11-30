@@ -1,5 +1,5 @@
 import os
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from decimal import Decimal, InvalidOperation
 from flask import Flask, render_template, redirect, url_for, flash, request, session, abort
 from sqlalchemy import func as sa_func
@@ -7,7 +7,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, Email, EqualTo, Length
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import db, User, Category, Expence
+from models import db, User, Category, Expence, Budget
 from dotenv import load_dotenv
 
 app = Flask(__name__)
@@ -125,14 +125,53 @@ def dashboard():
     if 'user_id' not in session:
         return redirect(url_for('signin'))
     user_id = session.get('user_id')
+    today_date = date.today()
+    current_month_start = today_date.replace(day=1)
+    previous_month_end = current_month_start - timedelta(days=1)
+    previous_month_start = previous_month_end.replace(day=1)
+
+    def sum_expenses(start_date=None, end_date=None):
+        query = db.session.query(sa_func.coalesce(sa_func.sum(Expence.amount), 0)).filter(Expence.user_id == user_id)
+        if start_date:
+            query = query.filter(Expence.date >= start_date)
+        if end_date:
+            query = query.filter(Expence.date < end_date)
+        value = query.scalar()
+        return Decimal(value or 0)
+
+    def sum_budgets(start_date=None, end_date=None):
+        query = db.session.query(sa_func.coalesce(sa_func.sum(Budget.amount), 0)).filter(Budget.user_id == user_id)
+        if start_date:
+            query = query.filter(Budget.date >= start_date)
+        if end_date:
+            query = query.filter(Budget.date < end_date)
+        value = query.scalar()
+        return Decimal(value or 0)
+
+    def percent_change(current, previous):
+        if previous is None or previous == 0:
+            return None
+        try:
+            return float((current - previous) / previous * 100)
+        except (InvalidOperation, ZeroDivisionError):
+            return None
+
     categories = Category.query.order_by(Category.name.asc()).all()
-    total_spending = (
-        db.session.query(sa_func.coalesce(sa_func.sum(Expence.amount), 0))
-        .filter(Expence.user_id == user_id)
-        .scalar()
-    )
-    if not isinstance(total_spending, Decimal):
-        total_spending = Decimal(total_spending)
+    spending_current = sum_expenses(start_date=current_month_start)
+    spending_prev = sum_expenses(start_date=previous_month_start, end_date=current_month_start)
+    total_spending = spending_current
+
+    budget_current = sum_budgets(start_date=current_month_start)
+    budget_prev = sum_budgets(start_date=previous_month_start, end_date=current_month_start)
+    total_budget = budget_current
+
+    budget_remaining_current = budget_current - spending_current
+    budget_remaining_prev = budget_prev - spending_prev
+    budget_remaining = budget_remaining_current if budget_remaining_current > 0 else Decimal(0)
+
+    spending_change = percent_change(spending_current, spending_prev)
+    budget_change = percent_change(budget_remaining_current, budget_remaining_prev)
+
     recent_expenses = (
         Expence.query.filter_by(user_id=user_id)
         .order_by(Expence.date.desc(), Expence.id.desc())
@@ -140,18 +179,47 @@ def dashboard():
         .all()
     )
 
-    category_totals = (
+    current_category_totals = (
         db.session.query(
             Category.name,
             sa_func.coalesce(sa_func.sum(Expence.amount), 0).label("total"),
         )
-        .outerjoin(Expence, (Category.id == Expence.category_id) & (Expence.user_id == user_id))
+        .join(Expence, (Category.id == Expence.category_id))
+        .filter(Expence.user_id == user_id, Expence.date >= current_month_start)
         .group_by(Category.id)
         .order_by(Category.name.asc())
         .all()
     )
-    chart_labels = [row[0] for row in category_totals]
-    chart_values = [float(row[1]) for row in category_totals]
+    current_category_map = {row[0]: Decimal(row[1] or 0) for row in current_category_totals}
+
+    prev_category_totals = (
+        db.session.query(
+            Category.name,
+            sa_func.coalesce(sa_func.sum(Expence.amount), 0).label("total"),
+        )
+        .join(Expence, (Category.id == Expence.category_id))
+        .filter(
+            Expence.user_id == user_id,
+            Expence.date >= previous_month_start,
+            Expence.date < current_month_start,
+        )
+        .group_by(Category.id)
+        .order_by(Category.name.asc())
+        .all()
+    )
+    prev_category_map = {row[0]: Decimal(row[1] or 0) for row in prev_category_totals}
+
+    top_category_name = "N/A"
+    top_category_amount = Decimal(0)
+    if current_category_map:
+        top_category_name, top_category_amount = max(
+            current_category_map.items(), key=lambda item: item[1]
+        )
+    top_category_prev_amount = prev_category_map.get(top_category_name, Decimal(0))
+    top_category_change = percent_change(top_category_amount, top_category_prev_amount)
+
+    chart_labels = list(current_category_map.keys())
+    chart_values = [float(val) for val in current_category_map.values()]
 
     return render_template(
         'dashboard.html',
@@ -159,6 +227,13 @@ def dashboard():
         today=date.today().isoformat(),
         recent_expenses=recent_expenses,
         total_spending=total_spending,
+        total_budget=total_budget,
+        budget_remaining=budget_remaining,
+        spending_change=spending_change,
+        budget_change=budget_change,
+        top_category_name=top_category_name,
+        top_category_amount=top_category_amount,
+        top_category_change=top_category_change,
         chart_labels=chart_labels,
         chart_values=chart_values,
     )
@@ -197,6 +272,58 @@ def myexpence():
         total_spending=total_spending,
         selected_category_id=selected_category_id,
     )
+
+
+@app.route('/settings')
+def settings():
+    if 'user_id' not in session:
+        return redirect(url_for('signin'))
+
+    user = User.query.get(session.get('user_id'))
+    if not user:
+        flash("User not found. Please sign in again.", "warning")
+        return redirect(url_for('logout'))
+
+    return render_template('settings.html', user=user)
+
+
+@app.route('/budget', methods=['GET', 'POST'])
+def budget():
+    if 'user_id' not in session:
+        return redirect(url_for('signin'))
+
+    if request.method == 'POST':
+        amount_raw = request.form.get('amount')
+        budget_date_raw = request.form.get('date')
+
+        if not amount_raw or not budget_date_raw:
+            flash("Please provide both amount and date.", "danger")
+            return redirect(url_for('budget'))
+
+        try:
+            amount = Decimal(amount_raw)
+        except (InvalidOperation, TypeError):
+            flash("Please enter a valid amount.", "danger")
+            return redirect(url_for('budget'))
+
+        try:
+            budget_date = datetime.strptime(budget_date_raw, "%Y-%m-%d").date()
+        except (ValueError, TypeError):
+            flash("Please enter a valid date.", "danger")
+            return redirect(url_for('budget'))
+
+        new_budget = Budget(user_id=session['user_id'], amount=amount, date=budget_date)
+        db.session.add(new_budget)
+        db.session.commit()
+        flash("Budget added successfully.", "success")
+        return redirect(url_for('budget'))
+
+    budgets = (
+        Budget.query.filter_by(user_id=session['user_id'])
+        .order_by(Budget.date.desc(), Budget.id.desc())
+        .all()
+    )
+    return render_template('budget.html', budgets=budgets, today=date.today().isoformat())
 
 
 

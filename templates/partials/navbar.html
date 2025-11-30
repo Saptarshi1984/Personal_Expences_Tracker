@@ -34,10 +34,10 @@
           <a class="nav-link" href="{{ url_for('myexpence') }}">My Expences</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="#features">Budgets</a>
+          <a class="nav-link" href="{{ url_for('budget') }}">Budgets</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="#features">Settings</a>
+          <a class="nav-link" href="{{ url_for('settings') }}">Settings</a>
         </li>
         {% else %}
         <li class="nav-item">

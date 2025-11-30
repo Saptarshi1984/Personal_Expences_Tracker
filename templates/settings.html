@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - FinTrack{% endblock %}
+
+{% block content %}
+<section class="dashboard-page py-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-9 col-xl-8">
+        <div class="dashboard-main">
+          <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+              <p class="text-uppercase text-muted fw-semibold mb-1" style="letter-spacing: 0.08em;">Account</p>
+              <h1 class="h3 fw-black mb-0">Profile Settings</h1>
+              <p class="text-muted mb-0">View the details tied to your FinTrack account.</p>
+            </div>
+            <div class="bg-soft-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 56px; height: 56px;">
+              <span class="material-symbols-outlined text-primary fs-3">settings</span>
+            </div>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-12">
+              <div class="dashboard-card h-100">
+                <div class="d-flex align-items-start justify-content-between">
+                  <div>
+                    <p class="text-muted mb-1">Name</p>
+                    <h2 class="h5 mb-0">{{ user.name }}</h2>
+                  </div>
+                  <span class="badge bg-soft-primary text-primary fw-semibold">Profile</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="dashboard-card h-100">
+                <div class="d-flex align-items-start justify-content-between">
+                  <div>
+                    <p class="text-muted mb-1">Email</p>
+                    <h2 class="h5 mb-0">{{ user.email }}</h2>
+                  </div>
+                  <span class="badge bg-soft-success text-success fw-semibold">Verified</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 p-3 rounded" style="background: var(--dashboard-soft); border: 1px dashed var(--dashboard-border);">
+            <div class="d-flex align-items-center gap-3">
+              <div class="bg-white rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; border: 1px solid var(--dashboard-border);">
+                <span class="material-symbols-outlined text-primary">lock_person</span>
+              </div>
+              <div>
+                <p class="fw-semibold mb-1">Need changes?</p>
+                <p class="text-muted mb-0">Reach out to support to update your account details securely.</p>
+              </div>
+              <a class="ms-auto btn btn-outline-primary btn-sm" href="mailto:support@fintrack.app">Contact Support</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

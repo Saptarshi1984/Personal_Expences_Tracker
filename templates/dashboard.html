@@ -16,7 +16,7 @@
             </a>
           </div>
 
-          <div class="segmented-wrapper mb-4">
+          <!-- <div class="segmented-wrapper mb-4">
             <div class="segmented-control">
               <input
                 type="radio"
@@ -43,7 +43,7 @@
               />
               <label class="segmented-option" for="range-ytd">Year to Date</label>
             </div>
-          </div>
+          </div> -->
 
           <div class="row g-3">
             <div class="col-12 col-md-6 col-xl-4">
@@ -52,35 +52,56 @@
                 <p class="h3 fw-bold mb-2 text-dark">
                   ₹{{ '{:,.2f}'.format(total_spending or 0) }}
                 </p>
-                <div class="stat-change text-success">
-                  <span class="material-symbols-outlined align-middle">arrow_upward</span>
-                  5.2% vs last month
+                {% set spending_positive = spending_change is not none and spending_change >= 0 %}
+                <div class="stat-change {% if spending_change is none %}text-muted{% elif spending_positive %}text-success{% else %}text-danger{% endif %}">
+                  {% if spending_change is not none %}
+                  <span class="material-symbols-outlined align-middle">
+                    {% if spending_positive %}arrow_upward{% else %}arrow_downward{% endif %}
+                  </span>
+                  {{ '%.1f'|format(spending_change) }}% vs last month
+                  {% else %}
+                  No prior month data
+                  {% endif %}
                 </div>
               </div>
             </div>
             <div class="col-12 col-md-6 col-xl-4">
               <div class="dashboard-card h-100">
                 <p class="text-muted mb-1">Budget Remaining</p>
-                <p class="h3 fw-bold mb-2 text-dark">₹749.25</p>
-                <div class="stat-change text-danger">
-                  <span class="material-symbols-outlined align-middle">arrow_downward</span>
-                  3.1% vs last month
+                <p class="h3 fw-bold mb-2 text-dark">₹{{ '{:,.2f}'.format(budget_remaining or 0) }}</p>
+                {% set budget_positive = budget_change is not none and budget_change >= 0 %}
+                <div class="stat-change {% if budget_change is none %}text-muted{% elif budget_positive %}text-success{% else %}text-danger{% endif %}">
+                  {% if budget_change is not none %}
+                  <span class="material-symbols-outlined align-middle">
+                    {% if budget_positive %}arrow_upward{% else %}arrow_downward{% endif %}
+                  </span>
+                  {{ '%.1f'|format(budget_change) }}% vs last month
+                  {% else %}
+                  No prior month data
+                  {% endif %}
                 </div>
               </div>
             </div>
             <div class="col-12 col-md-6 col-xl-4">
               <div class="dashboard-card h-100">
                 <p class="text-muted mb-1">Top Category</p>
-                <p class="h3 fw-bold mb-2 text-dark">Groceries</p>
-                <div class="stat-change text-success">
-                  <span class="material-symbols-outlined align-middle">arrow_upward</span>
-                  1.5% vs last month
+                <p class="h3 fw-bold mb-1 text-dark">{{ top_category_name }}</p>
+                <p class="text-muted mb-2">₹{{ '{:,.2f}'.format(top_category_amount or 0) }} this month</p>
+                {% set top_positive = top_category_change is not none and top_category_change >= 0 %}
+                <div class="stat-change {% if top_category_change is none %}text-muted{% elif top_positive %}text-success{% else %}text-danger{% endif %}">
+                  {% if top_category_change is not none %}
+                  <span class="material-symbols-outlined align-middle">
+                    {% if top_positive %}arrow_upward{% else %}arrow_downward{% endif %}
+                  </span>
+                  {{ '%.1f'|format(top_category_change) }}% vs last month
+                  {% else %}
+                  No prior month data
+                  {% endif %}
                 </div>
               </div>
             </div>
           </div>
-
-          <div class="section-heading d-flex align-items-center justify-content-between mt-5 mb-3">
+<div class="section-heading d-flex align-items-center justify-content-between mt-5 mb-3">
             <h2 class="h4 fw-bold mb-0 text-dark">Spending Analysis</h2>
           </div>
 
@@ -291,4 +312,3 @@
   });
 </script>
 {% endblock %}
-
