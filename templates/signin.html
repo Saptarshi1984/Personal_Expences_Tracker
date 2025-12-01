@@ -51,6 +51,7 @@
                   </span>
                   <input
                     type="password"
+                    id="signin-password"
                     class="signin-input border-start-0 border-end-0"
                     name="password"
                     placeholder="Enter your password"
@@ -75,4 +76,28 @@
     </div>
   </div>
 </section>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+  (() => {
+    const passwordInput = document.getElementById("signin-password");
+    const toggleButton = document.querySelector(".signin-visibility");
+    if (!passwordInput || !toggleButton) {
+      return;
+    }
+
+    const icon = toggleButton.querySelector(".material-symbols-outlined");
+
+    toggleButton.addEventListener("click", () => {
+      const shouldShow = passwordInput.type === "password";
+      passwordInput.type = shouldShow ? "text" : "password";
+      if (icon) {
+        icon.textContent = shouldShow ? "visibility_off" : "visibility";
+      }
+      toggleButton.setAttribute("aria-pressed", String(shouldShow));
+    });
+  })();
+</script>
 {% endblock %}

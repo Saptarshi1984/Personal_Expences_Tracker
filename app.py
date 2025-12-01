@@ -49,7 +49,8 @@ class SignupForm(FlaskForm):
         'confirm_password',
         validators=[
             DataRequired(),
-            Length(min=6, message="Password must be at least 6 characters.")
+            Length(min=6, message="Password must be at least 6 characters."),
+            EqualTo('password', message="Passwords must match.")
         ]
     )
     submit = SubmitField('Sign Up')
@@ -95,11 +96,20 @@ def signup():
     if 'user_id' in session:
         return redirect(url_for('dashboard'))
     
-    if form.validate_on_submit():
+    is_valid = form.validate_on_submit()
+    # Extra safeguard in case validators are bypassed
+    if request.method == 'POST' and form.password.data != form.confirm_password.data:
+        is_valid = False
+        flash("Passwords must match.", "danger")
+    if is_valid:
         # 1. Check if email is already registered
         existing_user = User.query.filter_by(email=form.email.data).first()
         if existing_user:
             flash("This email is already registered. Try logging in.")
+            return redirect(url_for('signup'))
+        
+        if form.password.data != form.confirm_password.data:
+            flash("Passwords do not match. Please try again.")
             return redirect(url_for('signup'))
 
         # 2. Hash the password
@@ -117,7 +127,11 @@ def signup():
         flash("Account created successfully! You can now log in.", "success")
         return redirect(url_for('signin'))
 
-    # If GET request or form not valid, just render the template again
+    # If GET request or form not valid, show errors (if any) and render the template again
+    if request.method == 'POST' and not is_valid:
+        for field_errors in form.errors.values():
+            for error in field_errors:
+                flash(error, "danger")
     return render_template('signup.html', form=form)
 
 @app.route('/dashboard')

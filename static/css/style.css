@@ -190,6 +190,16 @@
   background: #f9fafb;
 }
 
+.signup-visibility-toggle {
+  border: none;
+  background: #f9fafb;
+  cursor: pointer;
+}
+
+.signup-visibility-toggle:focus {
+  outline: none;
+}
+
 .signup-divider {
   display: flex;
   align-items: center;
