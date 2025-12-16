@@ -18,7 +18,18 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key')
 
 # Database configuration (prefers DATABASE_URL, falls back to local SQLite)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///site.db')
+raw_db_url = os.getenv('DATABASE_URL')
+if raw_db_url:
+    # Normalize common Postgres URLs for SQLAlchemy/psycopg2
+    if raw_db_url.startswith("postgres://"):
+        raw_db_url = raw_db_url.replace("postgres://", "postgresql+psycopg2://", 1)
+    elif raw_db_url.startswith("postgresql://"):
+        raw_db_url = raw_db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
+    # Ensure SSL is required (needed for Neon/Vercel Postgres)
+    if "sslmode=" not in raw_db_url:
+        raw_db_url += "&sslmode=require" if "?" in raw_db_url else "?sslmode=require"
+
+app.config['SQLALCHEMY_DATABASE_URI'] = raw_db_url or 'sqlite:///site.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
