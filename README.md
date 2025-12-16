@@ -2,6 +2,10 @@
 
 A Flask web app for capturing personal expenses, setting monthly budgets, and visualizing spending by category.
 
+## Live Demo
+- https://personal-expences-tracker-steel.vercel.app/
+- ![Dashboard screenshot](public/screenshot.png)
+
 ## Highlights
 - Secure signup/signin with CSRF-protected forms and hashed passwords
 - Add, edit, and delete expenses with category, date, and description
