@@ -13,12 +13,13 @@ A Flask web app for capturing personal expenses, setting monthly budgets, and vi
 - Add, edit, and delete expenses with category, date, and description
 - Monthly budget tracking with remaining balance indicators
 - Dashboard with category summaries and recent expenses
+- Chart.js charts for spend/budget visualizations
 - Responsive UI using Bootstrap 5 and custom styling
 
 ## Tech Stack
 - Python (Flask, SQLAlchemy, WTForms, Werkzeug)
 - SQLite (default) via SQLAlchemy ORM
-- Jinja2 templates, Bootstrap 5, custom CSS, Material Symbols
+- Jinja2 templates, Bootstrap 5, Chart.js, custom CSS, Material Symbols
 
 ## Requirements
 - Python 3.10+ (with `pip`)
