@@ -10,13 +10,15 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, User, Category, Expence, Budget
 from dotenv import load_dotenv
 
+load_dotenv()
+
 app = Flask(__name__)
 
 # Secret key for forms (CSRF protection)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key')
 
-# SQLite database (stored locally as site.db)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
+# Database configuration (prefers DATABASE_URL, falls back to local SQLite)
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///site.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
